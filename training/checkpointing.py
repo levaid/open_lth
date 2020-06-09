@@ -16,7 +16,7 @@ def save_checkpoint_callback(output_location, step, model, optimizer, logger):
         get_platform().save_model({
             'ep': step.ep,
             'it': step.it,
-            'model_state_dict': model.state_dict(),
+            'model_state_dict': model,
             'optimizer_state_dict': optimizer.state_dict(),
             'logger': str(logger),
         }, paths.checkpoint(output_location))

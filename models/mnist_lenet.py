@@ -12,6 +12,11 @@ from models import base
 from pruning import sparse_global
 
 
+def store(grad, name, grads):
+    print(name)
+    grads[name] = grad.clone()
+
+
 class Model(base.Model):
     '''A LeNet fully-connected model for CIFAR-10'''
 
@@ -30,12 +35,23 @@ class Model(base.Model):
 
         self.apply(initializer)
 
+        self.grads = {}
+
+        # for name, module in self.named_modules():
+        #     module.register_backward_hook(lambda grad: store(grad, name, self.grads))
+
     def forward(self, x):
         x = x.view(x.size(0), -1)  # Flatten.
         for layer in self.fc_layers:
             x = F.relu(layer(x))
 
         return self.fc(x)
+
+    def print_grads(self):
+        #print('here comes the grads')
+        #print(self.grads)
+        for key, tensor in self.grads.items():
+            print(key, tensor.shape)
 
     @property
     def output_layer_names(self):

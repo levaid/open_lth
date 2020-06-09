@@ -45,6 +45,8 @@ class Model(base.Model):
 
         self.apply(initializer)
 
+        self.grads = {}
+
     def forward(self, x):
         x = self.layers(x)
         x = nn.AvgPool2d(2)(x)

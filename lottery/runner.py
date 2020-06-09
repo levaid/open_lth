@@ -66,6 +66,7 @@ class LotteryRunner(Runner):
 
         if get_platform().is_primary_process: self.desc.save(self.desc.run_path(self.replicate, 0))
         if self.desc.pretrain_training_hparams: self._pretrain()
+
         if get_platform().is_primary_process: self._establish_initial_weights()
         get_platform().barrier()
 
@@ -83,6 +84,7 @@ class LotteryRunner(Runner):
         model = models.registry.get(self.desc.model_hparams, outputs=self.desc.pretrain_outputs)
         train.standard_train(model, location, self.desc.pretrain_dataset_hparams, self.desc.pretrain_training_hparams,
                              verbose=self.verbose, evaluate_every_epoch=self.evaluate_every_epoch)
+        print('1', model.grads.keys())
 
     def _establish_initial_weights(self):
         location = self.desc.run_path(self.replicate, 0)
@@ -95,12 +97,16 @@ class LotteryRunner(Runner):
             pretrain_loc = self.desc.run_path(self.replicate, 'pretrain')
             old = models.registry.load(pretrain_loc, self.desc.pretrain_end_step,
                                        self.desc.model_hparams, self.desc.pretrain_outputs)
-            state_dict = {k: v for k, v in old.state_dict().items()}
+            state_dict = {k: v for k, v in old.state_dict().items()} # not a problem
 
             # Select a new output layer if number of classes differs.
             if self.desc.train_outputs != self.desc.pretrain_outputs:
                 state_dict.update({k: new_model.state_dict()[k] for k in new_model.output_layer_names})
 
+            print('runnerpy')
+            # print('3', old.grads.keys())
+            new_model.grads = old.grads
+            print('4', new_model.grads.keys())
             new_model.load_state_dict(state_dict)
 
         new_model.save(location, self.desc.train_start_step)

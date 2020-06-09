@@ -18,6 +18,7 @@ class PrunedModel(Model):
         if isinstance(model, PrunedModel): raise ValueError('Cannot nest pruned models.')
         super(PrunedModel, self).__init__()
         self.model = model
+        self.grads = self.model.grads
 
         for k in self.model.prunable_layer_names:
             if k not in mask: raise ValueError('Missing mask value {}.'.format(k))

@@ -26,6 +26,9 @@ except ImportError:
     NO_APEX = True
 
 
+
+
+
 def train(
     training_hparams: hparams.TrainingHparams,
     model: Model,
@@ -64,6 +67,7 @@ def train(
     optimizer = optimizers.get_optimizer(training_hparams, model)
     step_optimizer = optimizer
     lr_schedule = optimizers.get_lr_schedule(training_hparams, optimizer, train_loader.iterations_per_epoch)
+    # ###########################################
 
     # Adapt for FP16.
     if training_hparams.apex_fp16:
@@ -91,6 +95,7 @@ def train(
     end_step = end_step or Step.from_str(training_hparams.training_steps, train_loader.iterations_per_epoch)
     if end_step <= start_step: return
 
+
     # The training loop.
     for ep in range(start_step.ep, end_step.ep + 1):
 
@@ -107,7 +112,8 @@ def train(
             for callback in callbacks: callback(output_location, step, model, optimizer, logger)
 
             # Exit at the end step.
-            if ep == end_step.ep and it == end_step.it: return
+            if ep == end_step.ep and it == end_step.it: 
+                return
 
             # Otherwise, train.
             examples = examples.to(device=get_platform().torch_device)
@@ -116,11 +122,23 @@ def train(
             step_optimizer.zero_grad()
             model.train()
             loss = model.loss_criterion(model(examples), labels)
+            
+            for name, layer in model.named_parameters():
+                if layer.requires_grad:
+                    layer.retain_grad()
+
+
             if training_hparams.apex_fp16:
                 with apex.amp.scale_loss(loss, optimizer) as scaled_loss:
                     scaled_loss.backward()
             else:
                 loss.backward()
+
+            # print(model.grads)
+            for name, layer in model.named_parameters():
+                if layer.requires_grad:
+                    model.grads[name] = layer.grad.clone().cpu().numpy()
+                    #print(layer.grad)
 
             # Step forward. Ignore extraneous warnings that the lr_schedule generates.
             step_optimizer.step()
@@ -128,6 +146,7 @@ def train(
                 warnings.filterwarnings("ignore", category=UserWarning)
                 lr_schedule.step()
 
+        
     get_platform().barrier()
 
 

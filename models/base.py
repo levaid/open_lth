@@ -69,7 +69,7 @@ class Model(abc.ABC, torch.nn.Module):
     def save(self, save_location: str, save_step: Step):
         if not get_platform().is_primary_process: return
         if not get_platform().exists(save_location): get_platform().makedirs(save_location)
-        get_platform().save_model(self.state_dict(), paths.model(save_location, save_step))
+        get_platform().save_model(self, paths.model(save_location, save_step))
 
 
 class DataParallel(Model, torch.nn.DataParallel):

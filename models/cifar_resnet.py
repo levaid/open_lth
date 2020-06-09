@@ -68,6 +68,8 @@ class Model(base.Model):
         # Initialize.
         self.apply(initializer)
 
+        self.grads = {}
+
     def forward(self, x):
         out = F.relu(self.bn(self.conv(x)))
         out = self.blocks(out)
