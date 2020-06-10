@@ -64,23 +64,29 @@ class LotteryRunner(Runner):
             print(self.desc.display)
             print(f'Output Location: {self.desc.run_path(self.replicate, 0)}' + '\n' + '='*82 + '\n')
 
-        if get_platform().is_primary_process: self.desc.save(self.desc.run_path(self.replicate, 0))
-        if self.desc.pretrain_training_hparams: self._pretrain()
+        if get_platform().is_primary_process:
+            self.desc.save(self.desc.run_path(self.replicate, 0))
+        if self.desc.pretrain_training_hparams:
+            self._pretrain()
 
-        if get_platform().is_primary_process: self._establish_initial_weights()
+        if get_platform().is_primary_process:
+            self._establish_initial_weights()
         get_platform().barrier()
 
         for level in range(self.levels+1):
-            if get_platform().is_primary_process: self._prune_level(level)
+            if get_platform().is_primary_process:
+                self._prune_level(level)
             get_platform().barrier()
             self._train_level(level)
 
     # Helper methods for running the lottery.
     def _pretrain(self):
         location = self.desc.run_path(self.replicate, 'pretrain')
-        if models.registry.exists(location, self.desc.pretrain_end_step): return
+        if models.registry.exists(location, self.desc.pretrain_end_step):
+            return
 
-        if self.verbose and get_platform().is_primary_process: print('-'*82 + '\nPretraining\n' + '-'*82)
+        if self.verbose and get_platform().is_primary_process:
+            print('-'*82 + '\nPretraining\n' + '-'*82)
         model = models.registry.get(self.desc.model_hparams, outputs=self.desc.pretrain_outputs)
         train.standard_train(model, location, self.desc.pretrain_dataset_hparams, self.desc.pretrain_training_hparams,
                              verbose=self.verbose, evaluate_every_epoch=self.evaluate_every_epoch)
@@ -88,7 +94,8 @@ class LotteryRunner(Runner):
 
     def _establish_initial_weights(self):
         location = self.desc.run_path(self.replicate, 0)
-        if models.registry.exists(location, self.desc.train_start_step): return
+        if models.registry.exists(location, self.desc.train_start_step):
+            return
 
         new_model = models.registry.get(self.desc.model_hparams, outputs=self.desc.train_outputs)
 
@@ -97,37 +104,42 @@ class LotteryRunner(Runner):
             pretrain_loc = self.desc.run_path(self.replicate, 'pretrain')
             old = models.registry.load(pretrain_loc, self.desc.pretrain_end_step,
                                        self.desc.model_hparams, self.desc.pretrain_outputs)
-            state_dict = {k: v for k, v in old.state_dict().items()} # not a problem
+            state_dict = {k: v for k, v in old.state_dict().items()}  # not a problem
 
             # Select a new output layer if number of classes differs.
             if self.desc.train_outputs != self.desc.pretrain_outputs:
                 state_dict.update({k: new_model.state_dict()[k] for k in new_model.output_layer_names})
 
-            print('runnerpy')
+            # print('runnerpy')
             # print('3', old.grads.keys())
             new_model.grads = old.grads
-            print('4', new_model.grads.keys())
+            # print('4', new_model.grads.keys())
             new_model.load_state_dict(state_dict)
 
         new_model.save(location, self.desc.train_start_step)
 
     def _train_level(self, level: int):
         location = self.desc.run_path(self.replicate, level)
-        if models.registry.exists(location, self.desc.train_end_step): return
+        if models.registry.exists(location, self.desc.train_end_step):
+            return
 
         model = models.registry.load(self.desc.run_path(self.replicate, 0), self.desc.train_start_step,
                                      self.desc.model_hparams, self.desc.train_outputs)
+        print('runnerpy_trainlevel,1', model.grads.keys())
         pruned_model = PrunedModel(model, Mask.load(location))
+        print('trainlevel,2', pruned_model.grads.keys())
         pruned_model.save(location, self.desc.train_start_step)
         if self.verbose and get_platform().is_primary_process:
             print('-'*82 + '\nPruning Level {}\n'.format(level) + '-'*82)
         train.standard_train(pruned_model, location, self.desc.dataset_hparams, self.desc.training_hparams,
                              start_step=self.desc.train_start_step, verbose=self.verbose,
                              evaluate_every_epoch=self.evaluate_every_epoch)
+        print('3', pruned_model.grads.keys())
 
     def _prune_level(self, level: int):
         new_location = self.desc.run_path(self.replicate, level)
-        if Mask.exists(new_location): return
+        if Mask.exists(new_location):
+            return
 
         if level == 0:
             Mask.ones_like(models.registry.get(self.desc.model_hparams)).save(new_location)

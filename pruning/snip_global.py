@@ -5,6 +5,7 @@ from foundations import hparams
 import models.base
 from pruning import base
 from pruning.mask import Mask
+from pruning.pruned_model import PrunedModel
 
 
 @dataclasses.dataclass
@@ -46,12 +47,15 @@ class Strategy(base.Strategy):
         # print('grads', trained_model.grads)
         # print(dir(trained_model))
 
+        if isinstance(trained_model, PrunedModel):
+            print(trained_model.model.grads.keys())
+
         grads = {k: v
                  for k, v in trained_model.grads.items()
                  if k in prunable_tensors}
 
-        # print(grads)
-        
+        print(grads.keys())
+
         assert sorted(weights.keys()) == sorted(grads.keys())
         snip_sensitivities = {k: weights[k] * grads[k] for k in weights.keys()}
 

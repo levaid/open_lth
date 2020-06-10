@@ -5,6 +5,7 @@
 
 from models.base import Model
 from pruning.mask import Mask
+import torch
 
 import numpy as np
 
@@ -15,13 +16,17 @@ class PrunedModel(Model):
         return 'mask_' + name.replace('.', '___')
 
     def __init__(self, model: Model, mask: Mask):
-        if isinstance(model, PrunedModel): raise ValueError('Cannot nest pruned models.')
+        if isinstance(model, PrunedModel):
+            raise ValueError('Cannot nest pruned models.')
         super(PrunedModel, self).__init__()
         self.model = model
         self.grads = self.model.grads
 
+        print('Pruned_init', self.grads.keys())
+
         for k in self.model.prunable_layer_names:
-            if k not in mask: raise ValueError('Missing mask value {}.'.format(k))
+            if k not in mask:
+                raise ValueError('Missing mask value {}.'.format(k))
             if not np.array_equal(mask[k].shape, np.array(self.model.state_dict()[k].shape)):
                 raise ValueError('Incorrect mask shape {} for tensor {}.'.format(mask[k].shape, k))
 
@@ -29,13 +34,22 @@ class PrunedModel(Model):
             if k not in self.model.prunable_layer_names:
                 raise ValueError('Key {} found in mask but is not a valid model tensor.'.format(k))
 
-        for k, v in mask.items(): self.register_buffer(PrunedModel.to_mask_name(k), v.float())
+        for k, v in mask.items():
+            self.register_buffer(PrunedModel.to_mask_name(k), v.float())
         self._apply_mask()
 
     def _apply_mask(self):
         for name, param in self.model.named_parameters():
             if hasattr(self, PrunedModel.to_mask_name(name)):
-                param.data *= getattr(self, PrunedModel.to_mask_name(name))
+                # print('we are trying to apply mask')
+                # print(name)
+                # print(type(PrunedModel.to_mask_name(name)))
+                # print(param.data)
+                # print(getattr(self, PrunedModel.to_mask_name(name)))
+                # device = device_("cuda" if cuda.is_available() else "cpu")
+                # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+                device = param.data.device
+                param.data *= getattr(self, PrunedModel.to_mask_name(name)).to(device)
 
     def forward(self, x):
         self._apply_mask()
