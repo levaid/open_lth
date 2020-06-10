@@ -125,16 +125,16 @@ class LotteryRunner(Runner):
 
         model = models.registry.load(self.desc.run_path(self.replicate, 0), self.desc.train_start_step,
                                      self.desc.model_hparams, self.desc.train_outputs)
-        print('runnerpy_trainlevel,1', model.grads.keys())
+
         pruned_model = PrunedModel(model, Mask.load(location))
-        print('trainlevel,2', pruned_model.grads.keys())
+
         pruned_model.save(location, self.desc.train_start_step)
         if self.verbose and get_platform().is_primary_process:
             print('-'*82 + '\nPruning Level {}\n'.format(level) + '-'*82)
         train.standard_train(pruned_model, location, self.desc.dataset_hparams, self.desc.training_hparams,
                              start_step=self.desc.train_start_step, verbose=self.verbose,
                              evaluate_every_epoch=self.evaluate_every_epoch)
-        print('3', pruned_model.grads.keys())
+        
 
     def _prune_level(self, level: int):
         new_location = self.desc.run_path(self.replicate, level)

@@ -47,16 +47,22 @@ class Strategy(base.Strategy):
         # print('grads', trained_model.grads)
         # print(dir(trained_model))
 
-        if isinstance(trained_model, PrunedModel):
-            print(trained_model.model.grads.keys())
+        # if isinstance(trained_model, PrunedModel):
+        #     print(trained_model.model.grads.keys())
+
+        print(trained_model.grads.keys())
+
+        grads_w_goodnames = dict([(k[6:], v) if k[:6] == 'model.' else (k, v)
+                                   for k, v in trained_model.grads.items()])
 
         grads = {k: v
-                 for k, v in trained_model.grads.items()
+                 for k, v in grads_w_goodnames.items()
                  if k in prunable_tensors}
 
-        print(grads.keys())
+        
 
         assert sorted(weights.keys()) == sorted(grads.keys())
+        print(grads['fc_layers.0.weight'][0, 0])
         snip_sensitivities = {k: weights[k] * grads[k] for k in weights.keys()}
 
         sensitivity_vector = np.concatenate([v[current_mask[k] == 1] for k, v in snip_sensitivities.items()])

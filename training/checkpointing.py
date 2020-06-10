@@ -36,6 +36,8 @@ def restore_checkpoint(output_location, model, optimizer, iterations_per_epoch):
     elif all(k.startswith('module.') for k in checkpoint['model_state_dict']) and not module_in_name:
         checkpoint['model_state_dict'] = {k[len('module.'):]: v for k, v in checkpoint['model_state_dict'].items()}
 
+    # model = torch.load(checkpoint['model_state_dict'])
+    print('are you restoring a fucking checkpoint, you fucking cunt?')
     model.load_state_dict(checkpoint['model_state_dict'])
     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
     step = Step.from_epoch(checkpoint['ep'], checkpoint['it'], iterations_per_epoch)

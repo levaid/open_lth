@@ -22,7 +22,6 @@ class PrunedModel(Model):
         self.model = model
         self.grads = self.model.grads
 
-        print('Pruned_init', self.grads.keys())
 
         for k in self.model.prunable_layer_names:
             if k not in mask:
