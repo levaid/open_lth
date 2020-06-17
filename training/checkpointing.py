@@ -28,17 +28,24 @@ def restore_checkpoint(output_location, model, optimizer, iterations_per_epoch):
     if not get_platform().exists(checkpoint_location):
         return None, None
     checkpoint = get_platform().load_model(checkpoint_location, map_location=torch.device('cpu'))
+    
+    # HACK workaround for maximum compatibility
+    checkpoint['original_model'] = checkpoint['model_state_dict']
+    checkpoint['model_state_dict'] = checkpoint['original_model'].state_dict()
 
     # Handle DataParallel.
     module_in_name = get_platform().is_parallel
     if module_in_name and not all(k.startswith('module.') for k in checkpoint['model_state_dict']):
         checkpoint['model_state_dict'] = {'module.' + k: v for k, v in checkpoint['model_state_dict'].items()}
     elif all(k.startswith('module.') for k in checkpoint['model_state_dict']) and not module_in_name:
+        
         checkpoint['model_state_dict'] = {k[len('module.'):]: v for k, v in checkpoint['model_state_dict'].items()}
 
     # model = torch.load(checkpoint['model_state_dict'])
-    print('are you restoring a fucking checkpoint, you fucking cunt?')
+    # print('are you restoring a fucking checkpoint, you fucking cunt?')
     model.load_state_dict(checkpoint['model_state_dict'])
+    # print(checkpoint['original_model'].grads.keys())
+    model.grads = checkpoint['original_model'].grads
     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
     step = Step.from_epoch(checkpoint['ep'], checkpoint['it'], iterations_per_epoch)
     logger = MetricLogger.create_from_string(checkpoint['logger'])
