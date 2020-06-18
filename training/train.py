@@ -18,6 +18,7 @@ from training.checkpointing import restore_checkpoint
 from training import optimizers
 from training import standard_callbacks
 from training.metric_logger import MetricLogger
+import numpy as np
 
 try:
     import apex
@@ -26,7 +27,8 @@ except ImportError:
     NO_APEX = True
 
 
-
+def gradient_normalize(arr):
+    return(arr/np.linalg.norm(arr))
 
 
 def train(
@@ -137,8 +139,11 @@ def train(
             # print(model.grads)
             for name, layer in model.named_parameters():
                 if layer.requires_grad:
-                    model.grads[name] = layer.grad.clone().cpu().numpy()
-                    #print(layer.grad)
+                    if name in model.grads:
+                        model.grads[name] += gradient_normalize(layer.grad.clone().cpu().numpy())
+                    else:
+                        model.grads[name] = gradient_normalize(layer.grad.clone().cpu().numpy())
+                    # print(layer.grad)
 
             # Step forward. Ignore extraneous warnings that the lr_schedule generates.
             step_optimizer.step()
