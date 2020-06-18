@@ -62,7 +62,7 @@ class Strategy(base.Strategy):
         
 
         assert sorted(weights.keys()) == sorted(grads.keys())
-        print(grads['fc_layers.0.weight'][0, 0])
+        # print(grads['fc_layers.0.weight'][0, 0])
         snip_sensitivities = {k: weights[k] * grads[k] for k in weights.keys()}
 
         sensitivity_vector = np.concatenate([v[current_mask[k] == 1] for k, v in snip_sensitivities.items()])

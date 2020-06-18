@@ -129,7 +129,6 @@ def train(
                 if layer.requires_grad:
                     layer.retain_grad()
 
-
             if training_hparams.apex_fp16:
                 with apex.amp.scale_loss(loss, optimizer) as scaled_loss:
                     scaled_loss.backward()
@@ -140,9 +139,9 @@ def train(
             for name, layer in model.named_parameters():
                 if layer.requires_grad:
                     if name in model.grads:
-                        model.grads[name] += gradient_normalize(layer.grad.clone().cpu().numpy())
+                        model.grads[name] += layer.grad.clone().cpu().numpy()
                     else:
-                        model.grads[name] = gradient_normalize(layer.grad.clone().cpu().numpy())
+                        model.grads[name] = layer.grad.clone().cpu().numpy()
                     # print(layer.grad)
 
             # Step forward. Ignore extraneous warnings that the lr_schedule generates.
