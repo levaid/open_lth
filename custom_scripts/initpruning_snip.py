@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[3]:
+# In[1]:
 
 
 import torch
@@ -22,7 +22,7 @@ from copy import deepcopy
 import datetime
 
 
-# In[36]:
+# In[2]:
 
 
 # Copyright (c) Facebook, Inc. and its affiliates.
@@ -37,7 +37,7 @@ from foundations import hparams
 from lottery.desc import LotteryDesc
 from models import base
 from pruning import sparse_global
-import initializers
+from models import initializers
 
 
 class Model(base.Model):
@@ -107,7 +107,7 @@ class Model(base.Model):
             if 'conv' in name or 'fc' in name:
                 # print(name)
                 weights_on_important_layers += [np.abs((module.weight.detach().cpu().numpy() *
-                                                        self.grads[name + '_orig']).flatten())]
+                                                        self.grads[name+'.weight']).flatten())]
 
         weights = np.concatenate(weights_on_important_layers)
         threshold = np.percentile(weights, (1-pruning_ratio)*100)
@@ -115,7 +115,7 @@ class Model(base.Model):
             if 'conv' in name or 'fc' in name:
                 # print(name)
                 prune.custom_from_mask(module, name = 'weight', 
-                                       mask = (torch.abs(module.weight.detach().cpu() * self.grads[name + '_orig']) > torch.tensor(threshold, device=device)).to(device))
+                                       mask = (torch.abs(module.weight.detach().cpu() * self.grads[name+'.weight']) > torch.tensor(threshold, device=device)).to(device))
                 
         return(threshold)
 
@@ -187,7 +187,7 @@ class Model(base.Model):
         return LotteryDesc(model_hparams, dataset_hparams, training_hparams, pruning_hparams)
 
 
-# In[5]:
+# In[3]:
 
 
 from torchvision.datasets import CIFAR10
@@ -201,14 +201,14 @@ train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=128, shuffl
 test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=128)
 
 
-# In[11]:
+# In[4]:
 
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 original_model = Model.get_model_from_name('cifar_vgg_11', initializers.kaiming_normal)
 
 
-# In[12]:
+# In[5]:
 
 
 LEVELS = 10
@@ -217,17 +217,17 @@ EPOCHS = 60
 
 currentDT = datetime.datetime.now()
 
-EXPERIMENT_NAME = currentDT.strftime("%Y_%m_%d_%H_%M_%S") + '_sparse_init'
+EXPERIMENT_NAME = currentDT.strftime("%Y_%m_%d_%H_%M_%S") + '_snip_init'
 print(EXPERIMENT_NAME)
 
 
-# In[13]:
+# In[6]:
 
 
 os.mkdir(os.path.join('/home/levaid/bigstorage/open_lth_data/', EXPERIMENT_NAME))
 
 
-# In[37]:
+# In[7]:
 
 
 performance_metrics = []
@@ -295,26 +295,26 @@ for level in range(LEVELS):
         
 
 
-# In[25]:
+# In[ ]:
 
 
 model.layers[2].conv.weight.requires_grad
 
 
-# In[27]:
+# In[ ]:
 
 
 for name, module in model.named_modules():
     print(name)
 
 
-# In[28]:
+# In[ ]:
 
 
 model.grads.keys()
 
 
-# In[35]:
+# In[ ]:
 
 
 model.layers[0].conv
