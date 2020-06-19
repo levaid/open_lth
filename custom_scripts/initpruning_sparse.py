@@ -37,7 +37,7 @@ from foundations import hparams
 from lottery.desc import LotteryDesc
 from models import base
 from pruning import sparse_global
-import initializers
+from models import  initializers
 
 
 class Model(base.Model):
@@ -172,11 +172,12 @@ class Model(base.Model):
 # In[3]:
 
 
-from datasets import cifar10
+# from datasets import cifar10
+from torchvision.datasets import CIFAR10
 
-train_dataset = cifar10.CIFAR10('/home/levaid/bigstorage/open_lth_datasets/cifar10', train=True,
+train_dataset = CIFAR10('/home/levaid/bigstorage/open_lth_datasets/cifar10', train=True, download=True,
                                 transform=torchvision.transforms.Compose([torchvision.transforms.ToTensor()]))
-test_dataset = cifar10.CIFAR10('/home/levaid/bigstorage/open_lth_datasets/cifar10', train=False,
+test_dataset = CIFAR10('/home/levaid/bigstorage/open_lth_datasets/cifar10', train=False, download=True,
                                 transform=torchvision.transforms.Compose([torchvision.transforms.ToTensor()]))
 
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=128, shuffle=True)
@@ -187,7 +188,7 @@ test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=128)
 
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-original_model = Model.get_model_from_name('cifar_vgg_11', initializers.kaiming_normal)
+original_model = Model.get_model_from_name('cifar_vgg_16', initializers.kaiming_normal)
 
 
 # In[5]:
@@ -199,7 +200,7 @@ EPOCHS = 60
 
 currentDT = datetime.datetime.now()
 
-EXPERIMENT_NAME = currentDT.strftime("%Y_%m_%d_%H_%M_%S") + '_sparse_init'
+EXPERIMENT_NAME = currentDT.strftime("%Y_%m_%d_%H_%M_%S") + 'vgg16_sparse_init'
 print(EXPERIMENT_NAME)
 
 
@@ -224,14 +225,14 @@ os.mkdir(os.path.join('/home/levaid/bigstorage/open_lth_data/', EXPERIMENT_NAME)
 # In[7]:
 
 
-performance_metrics = []
 for level in range(LEVELS):
     
+    performance_metrics = []
     model = deepcopy(original_model)
     model.to(device)
     optimizer = torch.optim.SGD(model.parameters(), lr = 0.1, momentum=0.1)
 
-    current_ratio = PRUNING_RATIO ** (level + 1)
+    current_ratio = PRUNING_RATIO ** (level)
     threshold = model.prune_network(current_ratio)
     print(threshold)
     print(current_ratio)
@@ -280,7 +281,8 @@ for level in range(LEVELS):
         with open(f'/home/levaid/bigstorage/open_lth_data/{EXPERIMENT_NAME}/level_{level}_perf.log', 'w') as f:
             for line in performance_metrics:
                 f.write(line + '\n')
-        
+       
+    torch.save(model, f'/home/levaid/bigstorage/open_lth_data/{EXPERIMENT_NAME}/model_level_{level}_.pth')
 
 
 # In[ ]:

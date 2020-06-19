@@ -205,7 +205,7 @@ test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=128)
 
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-original_model = Model.get_model_from_name('cifar_vgg_16', initializers.kaiming_normal)
+original_model = Model.get_model_from_name('cifar_vgg_11', initializers.kaiming_normal)
 
 
 # In[5]:
@@ -217,7 +217,7 @@ EPOCHS = 60
 
 currentDT = datetime.datetime.now()
 
-EXPERIMENT_NAME = currentDT.strftime("%Y_%m_%d_%H_%M_%S") + 'vgg16_snip_init'
+EXPERIMENT_NAME = currentDT.strftime("%Y_%m_%d_%H_%M_%S") + '_firstbatchsnip_init'
 print(EXPERIMENT_NAME)
 
 
@@ -267,13 +267,14 @@ for level in range(LEVELS):
                     else:
                         model.grads[name] = layer.grad.clone().cpu().numpy()
                     # print(layer.grad)
-            
+
+            if ep == 0 and it == 0:
+                threshold = model.prune_network_snip(current_ratio)
+                print(threshold)
+
             optimizer.step()
             
-        if ep == 0:
-            threshold = model.prune_network_snip(current_ratio)
-            print(threshold)
-
+        
         correct = 0
         model.eval()
         for it, (examples, labels) in enumerate(test_loader):
@@ -294,7 +295,6 @@ for level in range(LEVELS):
                 f.write(line + '\n')
         
 
-    torch.save(model, f'/home/levaid/bigstorage/open_lth_data/{EXPERIMENT_NAME}/model_level_{level}_.pth')
 
 # In[ ]:
 
