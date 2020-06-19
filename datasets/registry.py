@@ -5,11 +5,11 @@
 
 import numpy as np
 
-from datasets import base, cifar10, mnist, imagenet, cifar100
+from datasets import base, cifar10, mnist, imagenet, cifar100, fmnist
 from foundations.hparams import DatasetHparams
 from platforms.platform import get_platform
 
-registered_datasets = {'cifar10': cifar10, 'mnist': mnist, 'imagenet': imagenet, 'cifar100': cifar100}
+registered_datasets = {'cifar10': cifar10, 'fmnist': fmnist, 'mnist': mnist, 'imagenet': imagenet, 'cifar100': cifar100}
 
 
 def get(dataset_hparams: DatasetHparams, train: bool = True):

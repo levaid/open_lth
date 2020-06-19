@@ -139,9 +139,9 @@ def train(
             for name, layer in model.named_parameters():
                 if layer.requires_grad:
                     if name in model.grads:
-                        model.grads[name] += layer.grad.clone().cpu().numpy()
+                        model.grads[name] += np.abs(layer.grad.clone().cpu().numpy())
                     else:
-                        model.grads[name] = layer.grad.clone().cpu().numpy()
+                        model.grads[name] = np.abs(layer.grad.clone().cpu().numpy())
                     # print(layer.grad)
 
             # Step forward. Ignore extraneous warnings that the lr_schedule generates.
