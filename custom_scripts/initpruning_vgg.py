@@ -1,3 +1,6 @@
+import sys
+sys.path.append('/home/levaid/bigstorage/open_lth')
+from open_lth import *
 from pruning import sparse_global
 from models import base, initializers
 from lottery.desc import LotteryDesc
@@ -9,20 +12,17 @@ import datetime
 from copy import deepcopy
 from torch.nn.utils import prune
 import torchvision
-from open_lth import *
 import time
 
 import numpy as np
 import os
-import sys
 from torchvision.datasets import CIFAR10
-sys.path.append('/home/levaid/bigstorage/open_lth')
 
 
 PRUNING_STRATEGY = sys.argv[1]
 NETWORK_SIZE = int(sys.argv[2])
 
-if PRUNING_STRATEGY not in ['snip, sparse']:
+if PRUNING_STRATEGY not in ['snip', 'sparse']:
     raise(BaseException)
 
 if NETWORK_SIZE not in [11, 16]:
