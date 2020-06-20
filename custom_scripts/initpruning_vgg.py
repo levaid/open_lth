@@ -33,7 +33,7 @@ LEVELS = 8
 PRUNING_RATIO = 0.5
 EPOCHS = 60
 EXPERIMENT_NAME = datetime.datetime.now().strftime(
-    "%Y_%m_%d_%H_%M_%S") + f'_{PRUNING_STRATEGY}'
+    "%Y_%m_%d_%H_%M_%S") + f'_{PRUNING_STRATEGY}_vgg{NETWORK_SIZE}'
 
 print(EXPERIMENT_NAME)
 
