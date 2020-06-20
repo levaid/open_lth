@@ -207,9 +207,9 @@ original_model = Model.get_model_from_name(
 
 os.mkdir(os.path.join('/home/levaid/bigstorage/open_lth_data/', EXPERIMENT_NAME))
 
-performance_metrics = []
-for level in range(LEVELS):
 
+for level in range(LEVELS):
+    performance_metrics = []
     model = deepcopy(original_model)
     model.to(device)
     optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.1)
