@@ -152,7 +152,6 @@ class Model(base.Model):
     @property
     def loss_criterion(self):
         return self.criterion
-
     
     def prune_network_sparse(self, pruning_ratio):
         weights_on_important_layers = []
@@ -189,6 +188,37 @@ class Model(base.Model):
                                        mask=(torch.abs(module.weight.detach().cpu() * self.grads[name+'.weight']) > torch.tensor(threshold, device=device)).to(device))
 
         return(threshold)
+
+        @staticmethod
+    def default_hparams():
+        model_hparams = hparams.ModelHparams(
+            model_name='cifar_resnet_20',
+            model_init='kaiming_normal',
+            batchnorm_init='uniform',
+        )
+
+        dataset_hparams = hparams.DatasetHparams(
+            dataset_name='cifar10',
+            batch_size=128,
+        )
+
+        training_hparams = hparams.TrainingHparams(
+            optimizer_name='sgd',
+            momentum=0.9,
+            milestone_steps='80ep,120ep',
+            lr=0.1,
+            gamma=0.1,
+            weight_decay=1e-4,
+            training_steps='160ep',
+        )
+
+        pruning_hparams = sparse_global.PruningHparams(
+            pruning_strategy='sparse_global',
+            pruning_fraction=0.2
+        )
+
+        return LotteryDesc(model_hparams, dataset_hparams, training_hparams, pruning_hparams)
+
 
 
 train_dataset = CIFAR10('/home/levaid/bigstorage/open_lth_datasets/cifar10', train=True,
