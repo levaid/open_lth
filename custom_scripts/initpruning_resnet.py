@@ -189,7 +189,7 @@ class Model(base.Model):
 
         return(threshold)
 
-        @staticmethod
+    @staticmethod
     def default_hparams():
         model_hparams = hparams.ModelHparams(
             model_name='cifar_resnet_20',
