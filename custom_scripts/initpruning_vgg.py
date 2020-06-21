@@ -212,7 +212,7 @@ for level in range(LEVELS):
     performance_metrics = []
     model = deepcopy(original_model)
     model.to(device)
-    optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.1)
+    optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.1, weight_decay=0.0001)
 
     current_ratio = PRUNING_RATIO ** (level + 1)
 

@@ -31,7 +31,7 @@ if NETWORK_SIZE not in [20, 38]:
 
 LEVELS = 8
 PRUNING_RATIO = 0.5
-EPOCHS = 60
+EPOCHS = 80
 EXPERIMENT_NAME = datetime.datetime.now().strftime(
     "%Y_%m_%d_%H_%M_%S") + f'_{PRUNING_STRATEGY}_resnet{NETWORK_SIZE}'
 
@@ -243,7 +243,7 @@ for level in range(LEVELS):
     performance_metrics = []
     model = deepcopy(original_model)
     model.to(device)
-    optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.1)
+    optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.1, weight_decay=0.0001)
 
     current_ratio = PRUNING_RATIO ** (level + 1)
 
@@ -294,7 +294,7 @@ for level in range(LEVELS):
             threshold = model.prune_network_snip(current_ratio)
             print(f'snip pruning with {threshold:.6f} threshold')
 
-        if ep == 40:
+        if ep == 60:
             print('reducing LR')
             for param_group in optimizer.param_groups:
                 param_group['lr'] /= 10
