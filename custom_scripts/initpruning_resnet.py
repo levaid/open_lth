@@ -1,5 +1,7 @@
+BASEPATH = '/home/levaid/bigstorage/'
+import os
 import sys
-sys.path.append('/home/levaid/bigstorage/open_lth')
+sys.path.append(os.path.join(BASEPATH, 'open_lth'))
 from open_lth import *
 from pruning import sparse_global
 from models import base, initializers
@@ -15,7 +17,7 @@ import torchvision
 import time
 
 import numpy as np
-import os
+
 from torchvision.datasets import CIFAR10
 
 
@@ -220,10 +222,9 @@ class Model(base.Model):
         return LotteryDesc(model_hparams, dataset_hparams, training_hparams, pruning_hparams)
 
 
-
-train_dataset = CIFAR10('/home/levaid/bigstorage/open_lth_datasets/cifar10', train=True,
+train_dataset = CIFAR10(os.path.join(BASEPATH, 'open_lth_datasets/cifar10'), train=True, download=True,
                         transform=torchvision.transforms.Compose([torchvision.transforms.ToTensor()]))
-test_dataset = CIFAR10('/home/levaid/bigstorage/open_lth_datasets/cifar10', train=False,
+test_dataset = CIFAR10(os.path.join(BASEPATH, 'open_lth_datasets/cifar10'), train=False, download=True,
                        transform=torchvision.transforms.Compose([torchvision.transforms.ToTensor()]))
 
 train_loader = torch.utils.data.DataLoader(
@@ -236,7 +237,7 @@ original_model = Model.get_model_from_name(
     f'cifar_resnet_{NETWORK_SIZE}', initializers.kaiming_normal)
 
 
-os.mkdir(os.path.join('/home/levaid/bigstorage/open_lth_data/', EXPERIMENT_NAME))
+os.mkdir(os.path.join(BASEPATH, 'open_lth_data', EXPERIMENT_NAME))
 
 
 for level in range(LEVELS):
@@ -247,7 +248,7 @@ for level in range(LEVELS):
 
     current_ratio = PRUNING_RATIO ** (level + 1)
 
-    if PRUNING_STRATEGY == 'sparse':
+    if PRUNING_STRATEGY == 'sparse' and level != 0:
         threshold = model.prune_network_sparse(current_ratio)
         print(f'sparse pruning with {threshold:.6f} threshold')
 
@@ -290,7 +291,7 @@ for level in range(LEVELS):
         performance_metrics += [(f'test_accuracy,{ep},{correct/10000.0}')]
         print(performance_metrics[-1] + f' time: {time.time()-starttime:.2f}s')
 
-        if ep == 0 and PRUNING_STRATEGY == 'snip':
+        if ep == 0 and PRUNING_STRATEGY == 'snip' and level != 0:
             threshold = model.prune_network_snip(current_ratio)
             print(f'snip pruning with {threshold:.6f} threshold')
 
@@ -299,9 +300,8 @@ for level in range(LEVELS):
             for param_group in optimizer.param_groups:
                 param_group['lr'] /= 10
 
-        with open(f'/home/levaid/bigstorage/open_lth_data/{EXPERIMENT_NAME}/level_{level}_perf.log', 'w') as f:
+        with open(os.path.join(BASEPATH, f'open_lth_data/{EXPERIMENT_NAME}/level_{level}_perf.log'), 'w') as f:
             for line in performance_metrics:
                 f.write(line + '\n')
 
-    torch.save(model, f'/home/levaid/bigstorage/open_lth_data/{EXPERIMENT_NAME}/model_resnet_{NETWORK_SIZE}_level_{level}_.pth')
-
+    torch.save(model, (os.path.join(BASEPATH, f'open_lth_data/{EXPERIMENT_NAME}/model_resnet_{NETWORK_SIZE}_level_{level}_.pth')))
