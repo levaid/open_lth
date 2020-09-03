@@ -14,9 +14,9 @@ from platforms.platform import get_platform
 
 
 class CIFAR100(torchvision.datasets.CIFAR100):
-    """A subclass to suppress an annoying print statement in the torchvision CIFAR-10 library.
+    """A subclass to suppress an annoying print statement in the torchvision CIFAR-100 library.
 
-    Not strictly necessary - you can just use `torchvision.datasets.CIFAR10 if the print
+    Not strictly necessary - you can just use `torchvision.datasets.CIFAR100 if the print
     message doesn't bother you.
     """
 
@@ -30,7 +30,7 @@ class CIFAR100(torchvision.datasets.CIFAR100):
 
 
 class Dataset(base.ImageDataset):
-    """The CIFAR-10 dataset."""
+    """The CIFAR-100 dataset."""
 
     @staticmethod
     def num_train_examples(): return 50000

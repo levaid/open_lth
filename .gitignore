@@ -2,3 +2,5 @@ __pycache__
 *.pyc
 .*/
 platforms/local.py
+open_lth_data
+open_lth_datasets

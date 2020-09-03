@@ -19,6 +19,8 @@ from training import optimizers
 from training import standard_callbacks
 from training.metric_logger import MetricLogger
 import numpy as np
+from tqdm import tqdm
+from torch import autograd
 
 try:
     import apex
@@ -38,7 +40,8 @@ def train(
     output_location: str,
     callbacks: typing.List[typing.Callable] = [],
     start_step: Step = None,
-    end_step: Step = None
+    end_step: Step = None,
+    collect_gradients: bool = True,
 ):
 
     """The main training loop for this framework.
@@ -58,6 +61,7 @@ def train(
         Defaults to step 0.
       * end_step: The step at which training should cease. Otherwise, training will go for the
         full `training_hparams.training_steps` steps.
+      * collect_gradients: Whether to run an epoch at the end to collect the gradients.
     """
 
     # Create the output location if it doesn't already exist.
@@ -109,11 +113,40 @@ def train(
             # Advance the data loader until the start epoch and iteration.
             if ep == start_step.ep and it < start_step.it: continue
 
+
+
+            # Exit at the end step.
+            if ep == end_step.ep and it == end_step.it: 
+                # collecting the gradients at the end step
+                if collect_gradients:
+                    layer_names_grads = []
+                    layers_to_compute_gradients_on = []
+                    for name, tensor in model.named_parameters():
+                        if tensor.requires_grad:
+                            layer_names_grads += [name]
+                            layers_to_compute_gradients_on += [tensor]
+
+                    gradient_sum = [np.zeros(l.shape) for l in layers_to_compute_gradients_on]
+
+                    print([l.shape for l in layers_to_compute_gradients_on])
+                    for examples, labels in tqdm(train_loader, 'Collecting gradients'):
+                        examples = examples.to(device=get_platform().torch_device)
+                        labels = labels.to(device=get_platform().torch_device)
+                        predicted = model(examples)
+                        loss = model.loss_criterion(predicted, labels)
+                        gradients = autograd.grad(loss, layers_to_compute_gradients_on, retain_graph=True) # needs retain graph because gradient information gets destroyed after first access
+                        for i, g in enumerate(gradients):
+                            gradient_sum[i] += np.abs(g.detach().cpu().numpy())
+                    
+                    for name, grad in zip(layer_names_grads, gradient_sum):
+                        model.grads[name] = grad
+                    # print(f'names in train py: {model.grads.keys()}')
+                    
+
             # Run the callbacks.
             step = Step.from_epoch(ep, it, train_loader.iterations_per_epoch)
             for callback in callbacks: callback(output_location, step, model, optimizer, logger)
 
-            # Exit at the end step.
             if ep == end_step.ep and it == end_step.it: 
                 return
 
@@ -125,9 +158,6 @@ def train(
             model.train()
             loss = model.loss_criterion(model(examples), labels)
             
-            for name, layer in model.named_parameters():
-                if layer.requires_grad:
-                    layer.retain_grad()
 
             if training_hparams.apex_fp16:
                 with apex.amp.scale_loss(loss, optimizer) as scaled_loss:
@@ -135,14 +165,6 @@ def train(
             else:
                 loss.backward()
 
-            # print(model.grads)
-            for name, layer in model.named_parameters():
-                if layer.requires_grad:
-                    if name in model.grads:
-                        model.grads[name] += np.abs(layer.grad.clone().cpu().numpy())
-                    else:
-                        model.grads[name] = np.abs(layer.grad.clone().cpu().numpy())
-                    # print(layer.grad)
 
             # Step forward. Ignore extraneous warnings that the lr_schedule generates.
             step_optimizer.step()
