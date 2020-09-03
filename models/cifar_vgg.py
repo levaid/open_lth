@@ -26,7 +26,7 @@ class Model(base.Model):
         def forward(self, x):
             return F.relu(self.bn(self.conv(x)))
 
-    def __init__(self, plan, initializer, outputs=10):
+    def __init__(self, plan, initializer, outputs):
         super(Model, self).__init__()
 
         layers = []
@@ -66,11 +66,12 @@ class Model(base.Model):
                 int(model_name.split('_')[2]) in [11, 13, 16, 19])
 
     @staticmethod
-    def get_model_from_name(model_name, initializer, outputs=10):
+    def get_model_from_name(model_name, initializer, outputs):
         if not Model.is_valid_model_name(model_name):
             raise ValueError('Invalid model name: {}'.format(model_name))
-
-        outputs = outputs or 10
+        
+        assert outputs is not None
+        outputs = outputs
 
         num = int(model_name.split('_')[2])
         if num == 11:

@@ -87,10 +87,11 @@ class LotteryRunner(Runner):
 
         if self.verbose and get_platform().is_primary_process:
             print('-'*82 + '\nPretraining\n' + '-'*82)
+
+
         model = models.registry.get(self.desc.model_hparams, outputs=self.desc.pretrain_outputs)
         train.standard_train(model, location, self.desc.pretrain_dataset_hparams, self.desc.pretrain_training_hparams,
                              verbose=self.verbose, evaluate_every_epoch=self.evaluate_every_epoch)
-        print('1', model.grads.keys())
 
     def _establish_initial_weights(self):
         location = self.desc.run_path(self.replicate, 0)
@@ -142,7 +143,7 @@ class LotteryRunner(Runner):
             return
 
         if level == 0:
-            Mask.ones_like(models.registry.get(self.desc.model_hparams)).save(new_location)
+            Mask.ones_like(models.registry.get(self.desc.model_hparams, self.desc.train_outputs)).save(new_location)
         else:
             old_location = self.desc.run_path(self.replicate, level-1)
             model = models.registry.load(old_location, self.desc.train_end_step,

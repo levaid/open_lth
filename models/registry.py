@@ -72,11 +72,10 @@ def get(model_hparams: ModelHparams, outputs=None):
 
 
 def load(save_location: str, save_step: Step, model_hparams: ModelHparams, outputs=None):
-    # state_dict = get_platform().load_model(paths.model(save_location, save_step))
+    state_dict = get_platform().load_model(paths.model(save_location, save_step))
+
     model = get(model_hparams, outputs)
     model = torch.load(paths.model(save_location, save_step))
-    # print('reg.py')
-    # print(model.grads.keys())
     # model.load_state_dict(state_dict)
     return model
 
