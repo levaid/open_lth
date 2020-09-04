@@ -3,7 +3,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import concurrent
+import concurrent.futures
 import numpy as np
 import os
 from PIL import Image
@@ -14,9 +14,16 @@ from platforms.platform import get_platform
 
 
 def _get_samples(root, y_name, y_num):
-    y_dir = os.path.join(root, y_name)
+    if root.split('/')[-1] == 'train':
+        y_dir = os.path.join(root, y_name, 'images')
+        
+    elif root.split('/')[-1] == 'val':
+        y_dir = os.path.join(root, y_name)
+    else:
+        raise NotImplementedError
+
     if not get_platform().isdir(y_dir): return []
-    output = [(os.path.join(y_dir, f), y_num) for f in get_platform().listdir(y_dir) if f.lower().endswith('jpeg')]
+    output = [(os.path.join(y_dir, f), y_num) for f in sorted(get_platform().listdir(y_dir)) if f.lower().endswith('jpeg')]
     return output
 
 
@@ -42,10 +49,10 @@ class Dataset(base.ImageDataset):
             [torchvision.transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
 
     @staticmethod
-    def num_train_examples(): return 10000
+    def num_train_examples(): return 100000
 
     @staticmethod
-    def num_test_examples(): return 1000
+    def num_test_examples(): return 10000
 
     @staticmethod
     def num_classes(): return 200

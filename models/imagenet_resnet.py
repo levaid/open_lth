@@ -23,6 +23,7 @@ class ResNet(torchvision.models.ResNet):
         self.dilation = 1
         self.groups = 1
         self.base_width = 64
+        
 
         # The initial convolutional layer.
         self.conv1 = torch.nn.Conv2d(3, self.inplanes, kernel_size=7, stride=2, padding=3, bias=False)
@@ -55,9 +56,10 @@ class Model(base.Model):
     def __init__(self, model_fn, initializer, outputs=None):
         super(Model, self).__init__()
 
-        self.model = model_fn(num_classes=outputs or 1000)
+        self.model = model_fn(num_classes=outputs)
         self.criterion = torch.nn.CrossEntropyLoss()
         self.apply(initializer)
+        self.grads = {}
 
     def forward(self, x):
         return self.model(x)
@@ -74,7 +76,7 @@ class Model(base.Model):
                 int(model_name.split('_')[2]) in [18, 34, 50, 101, 152, 200])
 
     @staticmethod
-    def get_model_from_name(model_name, initializer,  outputs=1000):
+    def get_model_from_name(model_name, initializer,  outputs):
         """Name: imagenet_resnet_D[_W].
 
         D is the model depth (e.g., 50 for ResNet-50). W is the model width - the number of filters in the first
