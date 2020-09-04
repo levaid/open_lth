@@ -128,7 +128,7 @@ def train(
 
                     gradient_sum = [np.zeros(l.shape) for l in layers_to_compute_gradients_on]
 
-                    print([l.shape for l in layers_to_compute_gradients_on])
+                    # print([l.shape for l in layers_to_compute_gradients_on])
                     for examples, labels in tqdm(train_loader, 'Collecting gradients'):
                         examples = examples.to(device=get_platform().torch_device)
                         labels = labels.to(device=get_platform().torch_device)
