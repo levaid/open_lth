@@ -1,4 +1,6 @@
-# OpenLTH: A Framework for Lottery Tickets and Beyond
+# My fork of the OpenLTH framework: updated, extended, butchered
+
+## OpenLTH: A Framework for Lottery Tickets and Beyond
 
 ### Welcome
 
