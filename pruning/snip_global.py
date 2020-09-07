@@ -12,11 +12,13 @@ from pruning.pruned_model import PrunedModel
 class PruningHparams(hparams.PruningHparams):
     pruning_fraction: float = 0.2
     pruning_layers_to_ignore: str = None
+    pruning_gradient_weight: float = 1.0
 
     _name = 'Hyperparameters for SNIP'
     _description = 'Hyperparameters that modify the way pruning occurs.'
     _pruning_fraction = 'The fraction of additional weights to prune from the network.'
     _layers_to_ignore = 'A comma-separated list of addititonal tensors that should not be pruned.'
+    _gradient_weight = 'Applies elementwise exponentiation on each gradient.'
 
 
 class Strategy(base.Strategy):
@@ -55,7 +57,7 @@ class Strategy(base.Strategy):
         grads_w_goodnames = dict([(k[6:], v) if k[:6] == 'model.' else (k, v)
                                    for k, v in trained_model.grads.items()])
 
-        grads = {k: v
+        grads = {k: v**pruning_hparams.pruning_gradient_weight
                  for k, v in grads_w_goodnames.items()
                  if k in prunable_tensors}
 

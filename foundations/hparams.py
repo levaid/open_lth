@@ -180,8 +180,10 @@ class TrainingHparams(Hparams):
 @dataclass
 class PruningHparams(Hparams):
     pruning_strategy: str
+    pruning_gradient_weight: float = 1.0
 
     _name: str = 'Pruning Hyperparameters'
     _description: str = 'Hyperparameters that determine how the model is pruned. ' \
                         'More hyperparameters will appear once the pruning strategy is selected.'
     _pruning_strategy: str = 'The pruning strategy to use.'
+    _pruning_gradient_weight: str = 'Applies elementwise exponentiation on each gradient, only available for snip_global.'
