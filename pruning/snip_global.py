@@ -43,14 +43,14 @@ class Strategy(base.Strategy):
                    for k, v in trained_model.state_dict().items()
                    if k in prunable_tensors}
 
-        print(weights.keys())
+        # print(weights.keys())
         # print('grads', trained_model.grads)
         # print(dir(trained_model))
 
         # if isinstance(trained_model, PrunedModel):
         #     print(trained_model.model.grads.keys())
 
-        print(trained_model.grads.keys())
+        # print(trained_model.grads.keys())
 
         grads_w_goodnames = dict([(k[6:], v) if k[:6] == 'model.' else (k, v)
                                    for k, v in trained_model.grads.items()])

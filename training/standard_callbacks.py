@@ -12,7 +12,6 @@ from foundations.step import Step
 from platforms.platform import get_platform
 from training import checkpointing
 
-
 # Standard callbacks.
 def save_model(output_location, step, model, optimizer, logger):
     model.save(output_location, step)
@@ -80,7 +79,7 @@ def create_eval_callback(eval_name: str, loader: DataLoader, verbose=False):
             if verbose:
                 nonlocal time_of_last_call
                 elapsed = 0 if time_of_last_call is None else time.time() - time_of_last_call
-                print('{}\tep {:03d}\tit {:03d}\tloss {:.3f}\tacc {:.2f}%\tex {:d}\ttime {:.2f}s'.format(
+                print('\033[1;36;40m{}\tep {:03d}\tit {:03d}\tloss {:.3f}\tacc {:.2f}%\tex {:d}\ttime {:.2f}s\033[0;0m'.format(
                     eval_name, step.ep, step.it, total_loss/example_count, 100 * total_correct/example_count,
                     int(example_count), elapsed))
                 time_of_last_call = time.time()
