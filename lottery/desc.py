@@ -28,6 +28,8 @@ class LotteryDesc(Desc):
     pruning_hparams: hparams.PruningHparams
     pretrain_dataset_hparams: hparams.DatasetHparams = None
     pretrain_training_hparams: hparams.TrainingHparams = None
+    posttrain_dataset_hparams: hparams.DatasetHparams = None
+    posttrain_training_hparams: hparams.TrainingHparams = None
 
     @staticmethod
     def name_prefix(): return 'lottery'
@@ -50,6 +52,11 @@ class LotteryDesc(Desc):
             'pretraining arguments  may be set. Pretraining will be conducted using the same dataset and training '\
             'hyperparameters as for the main training run. For the full range of pre-training options, use --pretrain.'
         parser.add_argument('--rewinding_steps', type=str, help=help_text)
+        
+    def _add_posttrain_argument(parser):
+        help_text = \
+            'The number of steps for which to train in the end, after all pruning steps happened.' # HACK
+        parser.add_argument('--posttrain_steps', type=str, help=help_text)
 
     @staticmethod
     def add_args(parser: argparse.ArgumentParser, defaults: 'LotteryDesc' = None):
@@ -62,6 +69,11 @@ class LotteryDesc(Desc):
             'Rewinding/Pretraining Arguments', 'Arguments that control how the network is pre-trained')
         LotteryDesc._add_rewinding_argument(pretraining_parser)
         LotteryDesc._add_pretrain_argument(pretraining_parser)
+
+        posttraining_parser = parser.add_argument_group(
+            'Post training argument', 'After the train session, one can continue training for a specified amount of epochs.')
+        posttrain_steps = arg_utils.maybe_get_arg('posttrain_steps')
+        LotteryDesc._add_posttrain_argument(posttraining_parser)
 
         # Get the proper pruning hparams.
         pruning_strategy = arg_utils.maybe_get_arg('pruning_strategy')
@@ -111,6 +123,13 @@ class LotteryDesc(Desc):
             desc.pretrain_training_hparams = copy.deepcopy(training_hparams)
             desc.pretrain_training_hparams._name = 'Pretraining ' + desc.pretrain_training_hparams._name
             desc.pretrain_training_hparams.training_steps = args.rewinding_steps
+        
+        if args.posttrain_steps is not None: # it might bite me in the arse, but I suppose I won't ever need different posttrain params
+            desc.posttrain_dataset_hparams = copy.deepcopy(dataset_hparams)
+            desc.posttrain_dataset_hparams._name = 'Post training ' + desc.posttrain_dataset_hparams._name
+            desc.posttrain_training_hparams = copy.deepcopy(training_hparams)
+            desc.posttrain_training_hparams._name = 'Post training ' + desc.posttrain_training_hparams._name
+            desc.posttrain_training_hparams.training_steps = args.posttrain_steps
 
         return desc
 
@@ -124,6 +143,10 @@ class LotteryDesc(Desc):
         return self.str_to_step(self.pretrain_training_hparams.training_steps, True)
 
     @property
+    def posttrain_end_step(self):
+        return self.str_to_step(self.posttrain_training_hparams.training_steps, True)
+
+    @property
     def train_start_step(self):
         if self.pretrain_training_hparams: return self.str_to_step(self.pretrain_training_hparams.training_steps)
         else: return self.str_to_step('0it')
@@ -135,6 +158,10 @@ class LotteryDesc(Desc):
     @property
     def pretrain_outputs(self):
         return datasets_registry.num_classes(self.pretrain_dataset_hparams)
+
+    @property
+    def posttrain_outputs(self):
+        return datasets_registry.num_classes(self.posttrain_dataset_hparams)
 
     @property
     def train_outputs(self):

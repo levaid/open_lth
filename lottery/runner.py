@@ -79,6 +79,9 @@ class LotteryRunner(Runner):
             get_platform().barrier()
             self._train_level(level)
 
+        if self.desc.posttrain_training_hparams:
+            self._posttrain()
+
     # Helper methods for running the lottery.
     def _pretrain(self):
         location = self.desc.run_path(self.replicate, 'pretrain')
@@ -91,6 +94,15 @@ class LotteryRunner(Runner):
 
         model = models.registry.get(self.desc.model_hparams, outputs=self.desc.pretrain_outputs)
         train.standard_train(model, location, self.desc.pretrain_dataset_hparams, self.desc.pretrain_training_hparams,
+                             verbose=self.verbose, evaluate_every_epoch=self.evaluate_every_epoch)
+
+    def _posttrain(self):
+        location = self.desc.run_path(self.replicate, 'posttrain')
+        if self.verbose and get_platform().is_primary_process:
+            print('-'*82 + '\nPost training\n' + '-'*82)
+
+        model = models.registry.get(self.desc.model_hparams, outputs=self.desc.posttrain_outputs)
+        train.standard_train(model, location, self.desc.posttrain_dataset_hparams, self.desc.posttrain_training_hparams,
                              verbose=self.verbose, evaluate_every_epoch=self.evaluate_every_epoch)
 
     def _establish_initial_weights(self):
