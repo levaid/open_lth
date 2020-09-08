@@ -273,6 +273,10 @@ The framework includes the following models. Each model family shares the same d
 |Wide ResNet for CIFAR-10| The ResNets for CIFAR-10 in which the width of the network can be varied. | `cifar_resnet_D_W`, where `D` is the depth of the network as above, and `W` is the number of convolutional filters in the first block of the network. If `W` is 16, then this network is equivalent to `cifar_resnet_D`; to double the width, set `W` to 32. | `cifar_resnet_20_128` |
 |ResNet for ImageNet| A residual network for ImageNet. This is a different family of architectures than those designed for CIFAR-10, although they can be trained on CIFAR-10. | `imagenet_resnet_D`, where `D` is the depth of the network (valid choices are 18, 34, 101, 152, and 200) | `imagenet_resnet_50` |
 |Wide ResNet for ImageNet| The ResNets for ImageNet in which the width of the network can be varied. | `imagenet_resnet_D_W`, where `D` is the depth of the network as above, and `W` is the number of convolutional filters in the first block of the network. If `W` is 64, then this network is equivalent to `imagenet_resnet_D`; to double the width, set `W` to 128. | `imagenet_resnet_50_128` |
+|ResNet for CIFAR-100|--|`cifar_resnet_D`, but do not forget to specify `cifar100` in `dataset_name`|--|
+|VGG for CIFAR-100|--|`cifar_vgg_D`, but do not forget to set `dataset_name=cifar100`| | 
+|Squeezenet for CIFAR-100 and tiny-imagenet | -- | `squeezenet` | |
+
 
 ### 2.12 ImageNet
 
