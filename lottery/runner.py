@@ -80,7 +80,7 @@ class LotteryRunner(Runner):
             self._train_level(level)
 
         if self.desc.posttrain_training_hparams:
-            self._posttrain()
+            self._posttrain(level)
 
     # Helper methods for running the lottery.
     def _pretrain(self):
@@ -96,13 +96,22 @@ class LotteryRunner(Runner):
         train.standard_train(model, location, self.desc.pretrain_dataset_hparams, self.desc.pretrain_training_hparams,
                              verbose=self.verbose, evaluate_every_epoch=self.evaluate_every_epoch)
 
-    def _posttrain(self):
-        location = self.desc.run_path(self.replicate, 'posttrain')
+    def _posttrain(self, level: int):
+        
+        old_location = self.desc.run_path(self.replicate, level)
+        new_location = self.desc.run_path(self.replicate, 'posttrain')
+
         if self.verbose and get_platform().is_primary_process:
             print('-'*82 + '\nPost training\n' + '-'*82)
 
-        model = models.registry.get(self.desc.model_hparams, outputs=self.desc.posttrain_outputs)
-        train.standard_train(model, location, self.desc.posttrain_dataset_hparams, self.desc.posttrain_training_hparams,
+        
+        model = models.registry.load(old_location, self.desc.train_start_step,
+                                         self.desc.model_hparams, self.desc.train_outputs)
+
+        pruned_model = PrunedModel(model, Mask.load(old_location))
+
+
+        train.standard_train(pruned_model, new_location, self.desc.posttrain_dataset_hparams, self.desc.posttrain_training_hparams,
                              verbose=self.verbose, evaluate_every_epoch=self.evaluate_every_epoch)
 
     def _establish_initial_weights(self):

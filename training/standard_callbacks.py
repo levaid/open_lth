@@ -60,6 +60,7 @@ def create_eval_callback(eval_name: str, loader: DataLoader, verbose=False):
                 example_count += labels_size
                 total_loss += model.loss_criterion(output, labels) * labels_size
                 total_correct += correct(labels, output)
+                # TODO add top-5 accuracy, I can do it for every model
 
         # Share the information if distributed.
         if get_platform().is_distributed:
