@@ -97,12 +97,17 @@ class LotteryRunner(Runner):
                              verbose=self.verbose, evaluate_every_epoch=self.evaluate_every_epoch)
 
     def _posttrain(self, level: int):
+
+        
         
         old_location = self.desc.run_path(self.replicate, level)
         new_location = self.desc.run_path(self.replicate, 'posttrain')
 
         if self.verbose and get_platform().is_primary_process:
             print('-'*82 + '\nPost training\n' + '-'*82)
+
+        if models.registry.exists(new_location, self.desc.posttrain_end_step):
+            return
 
         
         model = models.registry.load(old_location, self.desc.train_start_step,

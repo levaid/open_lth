@@ -144,7 +144,8 @@ class LotteryDesc(Desc):
 
     @property
     def posttrain_end_step(self):
-        return self.str_to_step(self.posttrain_training_hparams.training_steps, True)
+        return self.str_to_step(self.posttrain_training_hparams.training_steps, False) 
+        # Need false because we are not pretraining. We are always training the model before post training.
 
     @property
     def train_start_step(self):
