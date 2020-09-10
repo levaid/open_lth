@@ -44,9 +44,13 @@ def create_eval_callback(eval_name: str, loader: DataLoader, verbose=False):
         example_count = torch.tensor(0.0).to(get_platform().torch_device)
         total_loss = torch.tensor(0.0).to(get_platform().torch_device)
         total_correct = torch.tensor(0.0).to(get_platform().torch_device)
+        total_top5correct = torch.tensor(0.0).to(get_platform().torch_device)
 
         def correct(labels, outputs):
             return torch.sum(torch.eq(labels, output.argmax(dim=1)))
+
+        def top5correct(labels, outputs):
+            return sum([label in top5 for label, top5 in zip(labels, torch.topk(output, 5, 1, largest=True)[1])])
 
         model.eval()
 
@@ -60,21 +64,26 @@ def create_eval_callback(eval_name: str, loader: DataLoader, verbose=False):
                 example_count += labels_size
                 total_loss += model.loss_criterion(output, labels) * labels_size
                 total_correct += correct(labels, output)
+                total_top5correct += top5correct(labels, output)
                 # TODO add top-5 accuracy, I can do it for every model
 
         # Share the information if distributed.
         if get_platform().is_distributed:
             torch.distributed.reduce(total_loss, 0, op=torch.distributed.ReduceOp.SUM)
             torch.distributed.reduce(total_correct, 0, op=torch.distributed.ReduceOp.SUM)
+            torch.distributed.reduce(total_top5correct, 0, op=torch.distributed.ReduceOp.SUM)
             torch.distributed.reduce(example_count, 0, op=torch.distributed.ReduceOp.SUM)
+            
 
         total_loss = total_loss.cpu().item()
         total_correct = total_correct.cpu().item()
+        total_top5correct = total_top5correct.cpu().item()
         example_count = example_count.cpu().item()
 
         if get_platform().is_primary_process:
             logger.add('{}_loss'.format(eval_name), step, total_loss / example_count)
             logger.add('{}_accuracy'.format(eval_name), step, total_correct / example_count)
+            logger.add('{}_top5accuracy'.format(eval_name), step, total_top5correct / example_count)
             logger.add('{}_examples'.format(eval_name), step, example_count)
 
             if verbose:
