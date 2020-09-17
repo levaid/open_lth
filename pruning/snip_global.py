@@ -57,15 +57,17 @@ class Strategy(base.Strategy):
         grads_w_goodnames = dict([(k[6:], v) if k[:6] == 'model.' else (k, v)
                                    for k, v in trained_model.grads.items()])
 
-        grads = {k: v**pruning_hparams.pruning_gradient_weight
+        grads = {k: v
                  for k, v in grads_w_goodnames.items()
                  if k in prunable_tensors}
 
-        
-
         assert sorted(weights.keys()) == sorted(grads.keys())
         # print(grads['fc_layers.0.weight'][0, 0])
-        snip_sensitivities = {k: weights[k] * grads[k] for k in weights.keys()}
+        assert pruning_hparams.pruning_gradient_weight >= 0 or pruning_hparams.pruning_gradient_weight == -1, 'Gradient weight must be either geq than 0 or equal to -1.'
+        if pruning_hparams.pruning_gradient_weight == -1:
+            snip_sensitivities = {k: grads[k] for k in weights.keys()}
+        else:
+            snip_sensitivities = {k: weights[k] * grads[k]**pruning_hparams.pruning_gradient_weight for k in weights.keys()}
 
         sensitivity_vector = np.concatenate([v[current_mask[k] == 1] for k, v in snip_sensitivities.items()])
         threshold = np.sort(np.abs(sensitivity_vector))[number_of_weights_to_prune]
