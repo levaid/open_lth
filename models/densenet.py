@@ -106,7 +106,7 @@ class Model(base.Model):
 
     def __init__(self, growth_rate=12, block_config=(16, 16, 16), compression=0.5,
                 num_init_features=24, bn_size=4, drop_rate=0,
-                num_classes=10, small_inputs=True, efficient=True):
+                num_classes=10, small_inputs=True, efficient=False):
 
         super(Model, self).__init__()
         assert 0 < compression <= 1, 'compression of densenet should be between 0 and 1'
