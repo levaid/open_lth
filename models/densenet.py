@@ -178,22 +178,24 @@ class Model(base.Model):
         return ['classifier.weight', 'classifier.bias']
 
     @staticmethod
-    def is_valid_model_name(model_name): #densenet_121_cifar
+    def is_valid_model_name(model_name): # densenet_121_cifar
         return (model_name.startswith('densenet_') and
                 len(model_name.split('_')) == 3 and 
-                int(model_name.split('_')[1]) in {121, 161, 169, 201})
+                model_name.split('_')[1] in {'121', '161', '169', '201', 'BC'})
 
     @staticmethod
     def get_model_from_name(model_name, initializer, outputs):
         """The name of a model is densenet_N.
 
         """
-        configuration = int(model_name.split('_')[1])
+        configuration = model_name.split('_')[1]
 
-        params_dict = {121: {'block_config': [6, 12, 24, 16], 'growth_rate': 32, 'num_init_features': 64}, 
-                       161: {'block_config': [6, 12, 36, 24], 'growth_rate': 48, 'num_init_features': 96},
-                       169: {'block_config': [6, 12, 32, 32], 'growth_rate': 32, 'num_init_features': 64},
-                       201: {'block_config': [6, 12, 48, 32], 'growth_rate': 32, 'num_init_features': 64}}
+
+        params_dict = {'121': {'block_config': [6, 12, 24, 16], 'growth_rate': 32, 'num_init_features': 64}, 
+                       '161': {'block_config': [6, 12, 36, 24], 'growth_rate': 48, 'num_init_features': 96},
+                       '169': {'block_config': [6, 12, 32, 32], 'growth_rate': 32, 'num_init_features': 64},
+                       '201': {'block_config': [6, 12, 48, 32], 'growth_rate': 32, 'num_init_features': 64},
+                       'BC' : {}}
 
         non_specific_params = {'num_classes': outputs, 'small_inputs': 'cifar' in model_name}
 
