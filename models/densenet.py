@@ -3,6 +3,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+from foundations.paths import model
 import math
 import torch
 import torch.nn as nn
@@ -194,10 +195,10 @@ class Model(base.Model):
                        169: {'block_config': [6, 12, 32, 32], 'growth_rate': 32, 'num_init_features': 64},
                        201: {'block_config': [6, 12, 48, 32], 'growth_rate': 32, 'num_init_features': 64}}
 
-        params_dict['num_classes'] = outputs
+        non_specific_params = {'num_classes': outputs, 'small_inputs': 'cifar' in model_name}
 
 
-        return Model(**params_dict[configuration])
+        return Model(**params_dict[configuration], **non_specific_params)
 
     @property
     def loss_criterion(self):
