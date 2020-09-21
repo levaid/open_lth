@@ -5,6 +5,8 @@
 
 import argparse
 
+import torch
+import os
 from cli import shared_args
 from dataclasses import dataclass
 from foundations.runner import Runner
@@ -174,4 +176,7 @@ class LotteryRunner(Runner):
             old_location = self.desc.run_path(self.replicate, level-1)
             model = models.registry.load(old_location, self.desc.train_end_step,
                                          self.desc.model_hparams, self.desc.train_outputs)
+            if len(model.grads) == 0: # if the grads aren't stored in the memory
+                model.grads = torch.load(os.path.join(old_location, 'grads.pt'))
+
             pruning.registry.get(self.desc.pruning_hparams)(model, Mask.load(old_location)).save(new_location)

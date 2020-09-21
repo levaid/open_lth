@@ -5,6 +5,7 @@
 
 import time
 import torch
+import os
 
 from datasets.base import DataLoader
 from foundations import hparams
@@ -16,6 +17,8 @@ from training import checkpointing
 def save_model(output_location, step, model, optimizer, logger):
     model.save(output_location, step)
 
+def save_grads(output_location, step, model, optimizer, logger):
+    torch.save(model.grads, os.path.join(output_location, 'grads.pt'))
 
 def save_logger(output_location, step, model, optimizer, logger):
     logger.save(output_location)
@@ -133,6 +136,7 @@ def standard_callbacks(training_hparams: hparams.TrainingHparams, train_set_load
         run_at_step(start, save_model),
         run_at_step(end, save_model),
         run_at_step(end, save_logger),
+        run_at_step(end, save_grads),
         run_every_epoch(checkpointing.save_checkpoint_callback),
     ]
 
