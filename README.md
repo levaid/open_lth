@@ -276,6 +276,7 @@ The framework includes the following models. Each model family shares the same d
 |ResNet for CIFAR-100|--|`cifar_resnet_D`, but do not forget to specify `cifar100` in `dataset_name`|--|
 |VGG for CIFAR-100|--|`cifar_vgg_D`, but do not forget to set `dataset_name=cifar100`| | 
 |Squeezenet for CIFAR-100 and tiny-imagenet | -- | `squeezenet` | |
+|CharCNN for agnews | -- | Yann LeCun's CNN-based text classifier from 2015  for the `agnews` dataset | `charcnn`|
 
 
 ### 2.12 ImageNet
