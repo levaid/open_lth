@@ -53,7 +53,10 @@ def create_eval_callback(eval_name: str, loader: DataLoader, verbose=False):
             return torch.sum(torch.eq(labels, output.argmax(dim=1)))
 
         def top5correct(labels, outputs):
-            return sum([label in top5 for label, top5 in zip(labels, torch.topk(output, 5, 1, largest=True)[1])])
+            if outputs.shape[1] < 5:
+                return(outputs.shape[0])
+            else:
+                return sum([label in top5 for label, top5 in zip(labels, torch.topk(output, 5, 1, largest=True)[1])])
 
         model.eval()
 

@@ -21,6 +21,7 @@ from training.metric_logger import MetricLogger
 import numpy as np
 from tqdm import tqdm
 from torch import autograd
+import torch
 
 try:
     import apex
@@ -164,8 +165,10 @@ def train(
                     scaled_loss.backward()
             else:
                 loss.backward()
-
-
+            # if we are on text, we need to do gradient clipping. The strength of the clipping is hardcoded for AGNews CharCNN right now.
+            if isinstance(train_loader, datasets.base.TextLoader):
+                torch.nn.utils.clip_grad_norm_(model.parameters(), 400)
+            
             # Step forward. Ignore extraneous warnings that the lr_schedule generates.
             step_optimizer.step()
             with warnings.catch_warnings():  # Filter unnecessary warning.

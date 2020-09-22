@@ -203,3 +203,32 @@ class DataLoader(torch.utils.data.DataLoader):
     @property
     def iterations_per_epoch(self):
         return self._iterations_per_epoch
+
+class TextLoader(torch.utils.data.DataLoader): 
+
+    ''' 
+    This class is used to circumvent the open_lths dataset which requires to keep the dataset in memory, 
+    which is not feasible in NLP datasets.
+    '''
+
+    def __init__(self, dataset, batch_size: int, num_workers: int, pin_memory: bool = True):
+        if get_platform().is_distributed:
+            raise NotImplementedError
+        else:
+            self._sampler = ShuffleSampler(len(dataset))
+
+        self._iterations_per_epoch = np.ceil(len(dataset) / batch_size).astype(int)
+
+        if get_platform().is_distributed:
+            raise NotImplementedError
+
+        super(TextLoader, self).__init__(
+            dataset, batch_size, sampler=self._sampler, num_workers=num_workers,
+            pin_memory=pin_memory and get_platform().torch_device.type == 'cuda')
+
+    def shuffle(self, seed: int):
+        self._sampler.shuffle_dataorder(seed)
+
+    @property
+    def iterations_per_epoch(self):
+        return self._iterations_per_epoch
