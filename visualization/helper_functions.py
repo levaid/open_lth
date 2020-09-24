@@ -1,5 +1,7 @@
 import pathlib
 import os
+import pandas as pd
+import json
 from collections import defaultdict
 
 def parse_hparams(hparams):
@@ -50,6 +52,39 @@ def convert_epoch_iter(time, to, its_per_epoch=1):
             raise(NotImplementedError)
     else:
         raise(NotImplementedError)
+
+def create_df_from_experiment(experiment_name, pruning_strat):
+    df_data = []
+    basepath = os.path.join('/home/levaid/bigstorage/open_lth_data', experiment_name)
+    for replicate_id in sorted(os.listdir(basepath)):
+        # data[replicate_id] = {}
+        for level in os.listdir(os.path.join(basepath, replicate_id)):
+            
+            
+
+            try:
+                if level == 'level_posttrain':
+                    accuracies = pd.read_csv(os.path.join(basepath, replicate_id, level, 'main', 'logger'), names = ['measure', 'unk', 'perf'])
+                    top_accuracy = accuracies.query('measure == "test_accuracy"')['perf'].max()
+                    df_data += [(replicate_id, level, top_accuracy, -1, pruning_strat)]
+                    continue
+                
+                accuracies = pd.read_csv(os.path.join(basepath, replicate_id, level, 'main', 'logger'), names = ['measure', 'unk', 'perf'])
+                with open(os.path.join(basepath, replicate_id, level, 'main', 'sparsity_report.json')) as f:
+                    pruning_report = json.load(f)
+                top_accuracy = accuracies.query('measure == "test_accuracy"')['perf'].max()
+                pruning_percent = pruning_report['unpruned'] / pruning_report['total']
+                #data[replicate_id][level] = {'accuracy': top_accuracy, 'unpruned': pruning_percent}
+                # data[replicate_id][level] = top_accuracy, pruning_percent
+                df_data += [(replicate_id, level, top_accuracy, pruning_percent, pruning_strat)]
+
+            except Exception as e:
+                print(replicate_id, level, e)
+                
+            
+                
+    df = pd.DataFrame(df_data, columns = ['replicate_id', 'level', 'accuracy', 'unpruned', 'pruning_strategy'])
+    return(df)
 
 
      
