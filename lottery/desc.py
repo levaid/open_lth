@@ -55,8 +55,14 @@ class LotteryDesc(Desc):
         
     def _add_posttrain_argument(parser):
         help_text = \
-            'The number of steps for which to train in the end, after all pruning steps happened.' # HACK
+            'The number of steps for which to train in the end, after all pruning steps happened.'
         parser.add_argument('--posttrain_steps', type=str, help=help_text)
+
+    def _add_posttrain_lr_argument(parser): # HACK
+        help_text = \
+            'In case you want different learning in the posttrain phase, you can set it here.' \
+            'This argument is also useful when you want to have lr = 0.0 in the pruning phase to simulate init pruning.'
+        parser.add_argument('--posttrain_lr', type=float, help=help_text)
 
     @staticmethod
     def add_args(parser: argparse.ArgumentParser, defaults: 'LotteryDesc' = None):
@@ -74,6 +80,9 @@ class LotteryDesc(Desc):
             'Post training argument', 'After the train session, one can continue training for a specified amount of epochs.')
         posttrain_steps = arg_utils.maybe_get_arg('posttrain_steps')
         LotteryDesc._add_posttrain_argument(posttraining_parser)
+        posttrain_lrate = arg_utils.maybe_get_arg('posttrain_lr')
+        LotteryDesc._add_posttrain_lr_argument(posttraining_parser)
+
 
         # Get the proper pruning hparams.
         pruning_strategy = arg_utils.maybe_get_arg('pruning_strategy')
@@ -130,6 +139,9 @@ class LotteryDesc(Desc):
             desc.posttrain_training_hparams = copy.deepcopy(training_hparams)
             desc.posttrain_training_hparams._name = 'Post training ' + desc.posttrain_training_hparams._name
             desc.posttrain_training_hparams.training_steps = args.posttrain_steps
+
+        if args.posttrain_lr is not None: # setting lrate independently
+            desc.posttrain_training_hparams.lr = args.posttrain_lr
 
         return desc
 
