@@ -8,12 +8,13 @@ import torch
 from foundations import paths
 from foundations.hparams import ModelHparams
 from foundations.step import Step
-from models import cifar_resnet, cifar_vgg, mnist_lenet, imagenet_resnet, squeezenet_cifar, densenet, charcnn
+from models import cifar_resnet, cifar_vgg, mnist_lenet, imagenet_resnet, squeezenet_cifar, densenet, charcnn, tinyimagenet_vgg, mnist_lenet5
 from models import bn_initializers, initializers
 from platforms.platform import get_platform
 
 registered_models = [mnist_lenet.Model, cifar_resnet.Model, cifar_vgg.Model, 
-                    imagenet_resnet.Model, squeezenet_cifar.Model, densenet.Model, charcnn.Model]
+                    imagenet_resnet.Model, squeezenet_cifar.Model, densenet.Model, 
+                    charcnn.Model, tinyimagenet_vgg.Model, mnist_lenet5.Model]
 
 
 def get(model_hparams: ModelHparams, outputs=None):

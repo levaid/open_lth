@@ -96,7 +96,7 @@ class Model(base.Model):
     @staticmethod
     def default_hparams():
         model_hparams = hparams.ModelHparams(
-            model_name='cifar_vgg_16',
+            model_name='tinyimagenet_vgg_16',
             model_init='kaiming_normal',
             batchnorm_init='uniform',
         )
